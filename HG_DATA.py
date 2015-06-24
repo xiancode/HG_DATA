@@ -19,9 +19,6 @@ def get_year_and_month(startyear=2011,startmonth=1,endyear=2015,endmonth=4):
     for j in range(1,endmonth+1):
             year_month_list.append(str(endyear)+"年-"+str(j)+"月")
     return year_month_list
-        
-    
-    
 
 def get_file_from_dir(dirname):
     '''
@@ -302,7 +299,7 @@ def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt',cal_year='2015年',cal_month
             if len(v) == 2 and v[0]!='-' and v[1]!='-':
                 last_tmp_dict[k] = v[0]-v[1]
         
-        outfile_name = "HG_CAL_DATA/" + cal_year + "_" + cal_month + "_" + "trade_area_data.txt"
+        outfile_name = "HG_CLS_DATA/" + cal_year + "_" + cal_month + "_" + "trade_area_data.txt"
         #fout = open("HG_CAL_DATA/trade_area_data.txt","w")
         fout = open(outfile_name,"w")
         #顺差从小到大排序
@@ -318,15 +315,21 @@ def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt',cal_year='2015年',cal_month
             fout.write(item[0]+"\t"+str(item[1])+"\t"+str(last_tmp_dict[item[0]])+"\n")
         #tmp_list.sort(key=operator.itemgetter(1))
         
-def save_to_xls(start_time='2011年1月',end_time='2015年5月'):
+def save_to_xls():
     '''
     
     '''
-    
+    year_months = get_year_and_month()
+    for tmp_time in year_months:
+        item_list = tmp_time.split('')
+        if len(item_list) == 2:
+            cur_year = item_list[0]
+            cur_monther = item_list[1]
+            pass
     
 def location_trade(filename = 'HG_CLS_DATA/HG20_data.txt'):
     '''
-    
+    分所在地，根据进口、出口数据计算进出口数据
     '''
     print filename
     print "计算商品出口总额(经营单位所在地)数据"
@@ -386,8 +389,8 @@ def location_trade(filename = 'HG_CLS_DATA/HG20_data.txt'):
 if __name__ == "__main__":
     #save_table_data("HG_INDICATOR/")
     #explor_growth_indicator("HG_INDICATOR/")
-    generate_up_value("HG_CLS_DATA")
-    #trade_top()
+    #generate_up_value("HG_CLS_DATA")
+    trade_top()
     #location_trade()
     #get_year_and_month()
     print "End!"
