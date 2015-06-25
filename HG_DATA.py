@@ -6,7 +6,36 @@
 import os
 import string
 import operator
+import  sys
+import shutil
+import errno
+from openpyxl import Workbook
+from openpyxl import load_workbook
+from _ast import Num
 
+type = sys.getfilesystemencoding()
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
+def copyanything(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc: # python >2.5
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else: raise
+        
+def copy_and_overwrite(from_path, to_path):
+    if os.path.exists(to_path):
+        shutil.rmtree(to_path)
+    shutil.copytree(from_path, to_path)
 
 def get_year_and_month(startyear=2011,startmonth=1,endyear=2015,endmonth=4):
     '''
@@ -39,10 +68,24 @@ def replace_growth(s):
 
 
 def replace_im_ex(s):
+    #HG20 
     if s.find("进口") != -1:
-        return string.replace(s, "进口","进出口")
+        tmp_str =  string.replace(s, "进口","进出口")
+        #HG23
+        if tmp_str.find("境内目的地") != -1:
+            return string.replace(tmp_str, "境内目的地","境内目的地/货源地总额")
+        else:
+            return tmp_str
+    #Hg20 
     elif s.find("出口") != -1:
-        return  string.replace(s, "出口","进出口")
+        tmp_str =   string.replace(s, "出口","进出口")
+    #HG23 
+        if tmp_str.find("境内货源地") != -1:
+            return  string.replace(tmp_str, "境内货源地","境内目的地/货源地总额")
+        else:
+            return tmp_str
+    else:
+        return s
 
 def sorteddict(d):
     '''
@@ -51,13 +94,55 @@ def sorteddict(d):
     return [(k,d[k]) for k in sorted(d.keys())]
 
 
+def get_rules(rulefile_name):
+    '''
+    
+    '''
+    rules_dict = {}
+    with open(rulefile_name) as f:
+        lines = f.readlines()[1:]
+        for line in lines:
+            line = line.strip()
+            item_list = line.split(':')
+            k = item_list[0]
+            rule = item_list[1]
+            if rules_dict.has_key(k):
+                print "规则中有重复,请检查",rulefile_name
+            else:
+                rules_dict.setdefault(k,rule)
+    return rules_dict
+
+def read_data(fname):
+    '''
+    
+    '''
+    data_dict = {}
+    with open(fname) as f:
+        lines = f.readlines()
+        for line in lines:
+            item_list = line.split("\t")
+            if len(item_list) ==  8:
+                indicator,area,area_code,year,month,num,unit=item_list[:-1]
+                tmp_list = [indicator,area_code,year,month]
+                key = "||".join(tmp_list)
+                if data_dict.has_key(key):
+                    data_dict[key] = [num,unit]
+                else:
+                    data_dict.setdefault(key,[num,unit])
+    return data_dict
+                    
+            
+
+
+
 def save_table_data(indicator_dir):
     '''
     
     '''
     file_list = get_file_from_dir(indicator_dir)
     
-    fin = open("2010_2015_allmonth_table.txt")
+    #fin = open("2010_2015_allmonth_table.txt")
+    fin = open("2010_2015_all_month_data_v0625_table.txt")
     data = fin.readlines()[1:]
     
     for filename in file_list:
@@ -72,7 +157,7 @@ def save_table_data(indicator_dir):
             for line in lines:
                 line_no += 1
                 if line_no%50 == 0:
-                    print line_no
+                    print line_no,"\r"
                 line = line.strip()
                 slist = line.split("=")
                 if len(slist) == 2:
@@ -137,9 +222,11 @@ def generate_up_value(indicator_dir):
     
     for filename in file_list:
         print filename
-        #对HG20_data文件,计算分地区进出口综合
-        if filename.find('HG20_data') !=-1:
+        #对HG20_data  HG23_data文件,计算分地区进出口综合
+        if filename.find('HG20_data') !=-1 or filename.find('HG23_data') !=-1:
             location_trade(filename)
+#         if filename.find('HG23_data') !=-1:
+#             location_trade(filename)
             
         #以指标 地区 地区代码 月份为Key
         #以年份 数值 为value建立字典
@@ -237,97 +324,114 @@ def generate_up_value(indicator_dir):
         #
         print filename,"calculate end!"
         
-def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt',cal_year='2015年',cal_month='1月'):
+def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
     '''
     
     '''
-    year_num = string.atoi(cal_year.strip("年"))
-    last_year = str(year_num-1)+"年"
-    #filename = 'HG_CLS_DATA/HG7_data.txt'
-    #国家 [出口 ,进口]
-    cur_data_dict = {}
-    last_data_dict = {}
-    #indicator_set = set()
-    with open(filename) as f:
-        lines = f.readlines()
-        for line in lines:
-            line = line.strip()
-            item_list = line.split('\t')
-            #判断行内格式是否正确
-            if len(item_list) == 8:
-                area,area_code,year,month,num,unit = item_list[1:-1]
-                indicator = item_list[0]
-                if year == cal_year and month == cal_month and indicator.find('组织')==-1 and indicator.find('联盟')==-1  and indicator.find('洲')==-1:
-                    indicator = item_list[0]
-                    pos1 = indicator.find(',')
-                    pos2 = indicator.find(')[')
-                    trade_area = indicator[pos1+1:pos2]
-                    if cur_data_dict.has_key(trade_area):
-                        if indicator.find('出口') != -1:
-                            cur_data_dict[trade_area][0] = string.atof(num)
-                        elif indicator.find('进口') != -1:
-                            cur_data_dict[trade_area][1] = string.atof(num)
-                    else:
-                        cur_data_dict.setdefault(trade_area,['-','-'])
-                        if indicator.find('出口') != -1:
-                            cur_data_dict[trade_area][0] = string.atof(num)
-                        elif indicator.find('进口') != -1:
-                            cur_data_dict[trade_area][1] = string.atof(num)
-                elif year==last_year and month == cal_month:
-                    indicator = item_list[0]
-                    pos1 = indicator.find(',')
-                    pos2 = indicator.find(')[')
-                    trade_area = indicator[pos1+1:pos2]
-                    if last_data_dict.has_key(trade_area):
-                        if indicator.find('出口') != -1:
-                            last_data_dict[trade_area][0] = string.atof(num)
-                        elif indicator.find('进口') != -1:
-                            last_data_dict[trade_area][1] = string.atof(num)
-                    else:
-                        last_data_dict.setdefault(trade_area,['-','-'])
-                        if indicator.find('出口') != -1:
-                            last_data_dict[trade_area][0] = string.atof(num)
-                        elif indicator.find('进口') != -1:
-                            last_data_dict[trade_area][1] = string.atof(num)
-        #顺差
-        cur_tmp_list = []
-        for k,v in cur_data_dict.iteritems():
-            if len(v) == 2 and v[0]!='-' and v[1]!='-':
-                cur_tmp_list.append((k,v[0]-v[1]))
-        last_tmp_dict = {}
-        for k,v in last_data_dict.iteritems():
-            if len(v) == 2 and v[0]!='-' and v[1]!='-':
-                last_tmp_dict[k] = v[0]-v[1]
-        
-        outfile_name = "HG_CLS_DATA/" + cal_year + "_" + cal_month + "_" + "trade_area_data.txt"
-        #fout = open("HG_CAL_DATA/trade_area_data.txt","w")
-        fout = open(outfile_name,"w")
-        #顺差从小到大排序
-        cur_tmp_list.sort(key=operator.itemgetter(1))
-        #顺差国家  
-        fb_area = cur_tmp_list[-10:]
-        for item in fb_area:
-            fout.write(item[0]+"\t"+str(item[1])+"\t"+str(last_tmp_dict[item[0]])+"\n")
-        #逆差国家
-        fout.write("\n")
-        ub_area =cur_tmp_list[:10] 
-        for item in ub_area:
-            fout.write(item[0]+"\t"+str(item[1])+"\t"+str(last_tmp_dict[item[0]])+"\n")
-        #tmp_list.sort(key=operator.itemgetter(1))
-        
-def save_to_xls():
-    '''
-    
-    '''
+    f = open(filename)
+    lines = f.readlines()
+    outfile_name = "HG_CLS_DATA/HG8_data.txt"
+    fout = open(outfile_name,"w")
+    outfile_name_uf = "HG_CLS_DATA/HG9_data.txt"
+    fout_uf = open(outfile_name_uf,"w")
     year_months = get_year_and_month()
     for tmp_time in year_months:
-        item_list = tmp_time.split('')
+        item_list = tmp_time.split('-')
         if len(item_list) == 2:
-            cur_year = item_list[0]
-            cur_monther = item_list[1]
-            pass
+            cal_year = item_list[0]
+            cal_month = item_list[1]
+            year_num = string.atoi(cal_year.strip("年"))
+            last_year = str(year_num-1)+"年"
+            #filename = 'HG_CLS_DATA/HG7_data.txt'
+            #国家 [出口 ,进口]
+            cur_data_dict = {}
+            last_data_dict = {}
+            #indicator_set = set()
+            with open(filename) as f:
+                lines = f.readlines()
+            for line in lines:
+                line = line.strip()
+                item_list = line.split('\t')
+                #判断行内格式是否正确
+                if len(item_list) == 8:
+                    area,area_code,year,month,num,unit = item_list[1:-1]
+                    indicator = item_list[0]
+                    #过滤掉组织  洲   联盟等地区
+                    if year == cal_year and month == cal_month and indicator.find('组织')==-1 and indicator.find('联盟')==-1  and indicator.find('洲')==-1:
+                        indicator = item_list[0]
+                        pos1 = indicator.find(',')
+                        pos2 = indicator.find(')[')
+                        #获取地区
+                        trade_area = indicator[pos1+1:pos2]
+                        #获取进出口值
+                        if cur_data_dict.has_key(trade_area):
+                            if indicator.find('出口') != -1:
+                                cur_data_dict[trade_area][0] = string.atof(num)
+                            elif indicator.find('进口') != -1:
+                                cur_data_dict[trade_area][1] = string.atof(num)
+                        else:
+                            cur_data_dict.setdefault(trade_area,['-','-'])
+                            if indicator.find('出口') != -1:
+                                cur_data_dict[trade_area][0] = string.atof(num)
+                            elif indicator.find('进口') != -1:
+                                cur_data_dict[trade_area][1] = string.atof(num)
+                    #获取去年当期进出口值
+                    elif year==last_year and month == cal_month:
+                        indicator = item_list[0]
+                        pos1 = indicator.find(',')
+                        pos2 = indicator.find(')[')
+                        trade_area = indicator[pos1+1:pos2]
+                        if last_data_dict.has_key(trade_area):
+                            if indicator.find('出口') != -1:
+                                last_data_dict[trade_area][0] = string.atof(num)
+                            elif indicator.find('进口') != -1:
+                                last_data_dict[trade_area][1] = string.atof(num)
+                        else:
+                            last_data_dict.setdefault(trade_area,['-','-'])
+                            if indicator.find('出口') != -1:
+                                last_data_dict[trade_area][0] = string.atof(num)
+                            elif indicator.find('进口') != -1:
+                                last_data_dict[trade_area][1] = string.atof(num)
+            #顺差
+            cur_tmp_list = []
+            for k,v in cur_data_dict.iteritems():
+                if len(v) == 2 and v[0]!='-' and v[1]!='-':
+                    cur_tmp_list.append((k,v[0]-v[1]))
+            #去年当期
+            last_tmp_dict = {}
+            for k,v in last_data_dict.iteritems():
+                if len(v) == 2 and v[0]!='-' and v[1]!='-':
+                    last_tmp_dict[k] = v[0]-v[1]
+                
+            #outfile_name = "HG_CLS_DATA/" + cal_year + "_" + cal_month + "_" + "trade_area_data.txt"
+            #fout = open("HG_CAL_DATA/trade_area_data.txt","w")
+            #fout = open(outfile_name,"w")
+            #顺差从小到大排序
+            cur_tmp_list.sort(key=operator.itemgetter(1))
+            #顺差国家  
+            fb_area = cur_tmp_list[-10:]
+            i = 0
+            for item in fb_area:
+                i =+1 
+                fout.write("国别"+str(i)+"\t"+area+"\t" + area_code + "\t"+cal_year+"\t"+cal_month+"\t"+item[0]+"\t"+"$"+"\tcalculated\n")
+                fout.write("顺差额"+str(i)+"\t"+area+"\t" + area_code + "\t"+cal_year+"\t"+cal_month+"\t"+str(item[1])+"\t"+"千美元"+"\tcalculated\n")
+                fout.write("上年同期顺差额"+str(i)+"\t"+area+"\t" + area_code + "\t"+cal_year+"\t"+cal_month+"\t"+str(last_tmp_dict[item[0]])+"\t"+"千美元"+"\tcalculated\n")
+                #fout.write(item[0]+"\t"+str(item[1])+"\t"+str(last_tmp_dict[item[0]])+"\n")
+            #逆差国家
+            ub_area =cur_tmp_list[:10] 
+            i = 0
+            for item in ub_area:
+                i +=1
+                fout_uf.write("国别"+str(i)+"\t"+area+"\t" + area_code + "\t"+cal_year+"\t"+cal_month+"\t"+item[0]+"\t"+"$"+"\tcalculated\n")
+                fout_uf.write("逆差额"+str(i)+"\t"+area+"\t" + area_code + "\t"+cal_year+"\t"+cal_month+"\t"+str(item[1])+"\t"+"千美元"+"\tcalculated\n")
+                fout_uf.write("上年同期逆差额"+str(i)+"\t"+area+"\t" + area_code + "\t"+cal_year+"\t"+cal_month+"\t"+str(last_tmp_dict[item[0]])+"\t"+"千美元"+"\tcalculated\n")
+            #tmp_list.sort(key=operator.itemgetter(1))
+    fout_uf.close()
+    fout.close()
+    f.close()
+        
     
-def location_trade(filename = 'HG_CLS_DATA/HG20_data.txt'):
+def location_trade(filename = 'HG_CLS_DATA/HG23_data.txt'):
     '''
     分所在地，根据进口、出口数据计算进出口数据
     '''
@@ -350,8 +454,15 @@ def location_trade(filename = 'HG_CLS_DATA/HG20_data.txt'):
                             indicator,area,area_code,year,month,num,unit = item_list[0:-1]
                             #获取特定年份、月份数据
                             if year == cal_year and month == cal_month:
+                                #HG20
                                 if indicator == "商品出口总额(经营单位所在地)[S]" or indicator == "商品进口总额(经营单位所在地)[S]":
-                                    indicator = area + indicator
+                                    #为指标添加标记，方便计算不同地区的 '商品出口总额(经营单位所在地)[S]' 计算完成后取消
+                                    indicator = area + '@' +  indicator
+                                else:
+                                    pass
+                                if indicator == "商品进口总额(境内目的地)[S]" or indicator == "商品出口总额(境内货源地)[S]":
+                                    #为指标添加标记，方便计算不同地区的 '商品出口总额(经营单位所在地)[S]' 计算完成后取消
+                                    indicator = area + '@' +  indicator
                                 else:
                                     pass    
                                 #保存需要计算的指标和数值
@@ -361,6 +472,7 @@ def location_trade(filename = 'HG_CLS_DATA/HG20_data.txt'):
             for tmp_list in cal_data:
                 if len(tmp_list) == 7:
                     indicator,area,area_code,year,month,num,unit = tmp_list
+                    #进口 出口 合并为一个指标
                     ex_im_indicator = replace_im_ex(indicator)
                     ex_im_num_dict.setdefault(ex_im_indicator,['-','-',area,area_code,year,month,num,unit])
                     #当前地区添加出口数据
@@ -379,20 +491,102 @@ def location_trade(filename = 'HG_CLS_DATA/HG20_data.txt'):
                 if ex_num !='-' and im_num !='-':
                     ex_im_sum = ex_num + im_num
                     out_list = [area,area_code,year,month,str(ex_im_sum),unit,"caculated"]
+                    #去掉标记
+                    pos = k.find('@')
+                    if pos != -1:
+                        k = k[pos+1:]
                     fout.write(k + "\t" + '\t'.join(out_list)+"\n")
             fout.close()
     print "所在地进出口数据计算结束!"
         
-        
-        
 
+def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
+    '''
+    
+    '''
+    rules = get_rules(cal_rule_name)
+    data = read_data(cal_data_file_name)
+    #for k_t,v_t in data.iteritems():
+        #print k_t,v_t
+    wb = load_workbook(xls_name)
+    sheetnames = wb.get_sheet_names()
+    ws = wb.get_sheet_by_name(sheetnames[0])
+    for cellname,rule in rules.iteritems():
+        rule_item_list = rule.split("||")
+        if len(rule_item_list) == 6:
+            #变换规则
+            s_indicator,s_areacode,s_year,s_month,s_unit,s_flag = rule_item_list
+            if s_year == "default":
+                s_year = cal_year
+            if s_month == "default":
+                s_month = cal_month
+            #累计月份转化
+            if s_flag == "L":
+                if s_month== "1月":
+                    pass
+                else:
+                    s_month = "1-"+s_month
+            s_tmp_list = [s_indicator,s_areacode,s_year,s_month]
+            s_rule = "||".join(s_tmp_list) 
+            print s_rule
+            if data.has_key(s_rule):
+                num,unit = data[s_rule]
+                if s_unit == unit:
+                    ws.cell(cellname).value = num 
+                else:
+                    print s_unit,unit,"需要转换单位"
+            else:
+                ws.cell(cellname).value = '-'
+    wb.save(xls_name)
+    print ""
+    
+    
+def save_to_xls():
+    '''
+    
+    '''
+    year_months = get_year_and_month()
+    #逐月处理
+    for tmp_time in year_months:
+        item_list = tmp_time.split('-')
+        if len(item_list) == 2:
+            cur_year = item_list[0]
+            cur_month = item_list[1]
+            print tmp_time
+            cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
+            basenames = []
+            try:
+                #复制文件到当月文件夹
+                #copyanything('XLS_MODULE/',cur_save_dir_name)
+                copy_and_overwrite('XLS_MODULE/', cur_save_dir_name)
+            except Exception,e:
+                print "文件夹复制失败",e
+                sys.exit()
+            else:
+                print cur_save_dir_name,"文件夹复制成功"
+                xls_file_list = os.listdir(cur_save_dir_name)
+                #获取xlsx文件名的基本名,切去掉后缀名
+                for xls_name in xls_file_list:
+                    basenames.append(os.path.basename(xls_name).strip(".xlsx"))
+            #basenames = ['HG1','HG2']
+            for bname in basenames:
+                data_file_name = os.path.join("HG_CLS_DATA/",bname+'_data.txt')
+                rule_file_name = os.path.join("RULES/",bname+'.txt')
+                xls_file_name   = os.path.join(cur_save_dir_name,bname+'.xlsx')
+                data_to_excel(cur_year, cur_month, data_file_name, rule_file_name,xls_file_name)
+            print tmp_time,"转化完毕"
+                
+                
+                    
 if __name__ == "__main__":
     #save_table_data("HG_INDICATOR/")
     #explor_growth_indicator("HG_INDICATOR/")
     #generate_up_value("HG_CLS_DATA")
     trade_top()
     #location_trade()
+    #location_trade(filename = 'HG_CLS_DATA/HG23_data.txt')
     #get_year_and_month()
+    #save_to_xls()
     print "End!"
     
     
