@@ -262,7 +262,7 @@ def explor_growth_indicator(indicator_dir):
     
 def generate_up_value(indicator_dir):
     '''
-    
+        对没有同比数据的指标产生同比数据
     '''
     file_list = get_file_from_dir(indicator_dir)
     #file_list = ['HG_CLS_DATA/HG1_data.txt']
@@ -271,6 +271,7 @@ def generate_up_value(indicator_dir):
         print filename
         #对HG20_data  HG23_data文件,计算分地区进出口综合
         if filename.find('HG20_data') !=-1 or filename.find('HG23_data') !=-1:
+            #计算地区进出口数据
             location_trade(filename)
 #         if filename.find('HG23_data') !=-1:
 #             location_trade(filename)
@@ -291,6 +292,7 @@ def generate_up_value(indicator_dir):
                     area,area_code,year,month,num,unit = item_list[1:-1]
                     key = indicator+'@'+area+'@'+area_code+'@'+month
                     value_tmp_list = [year,num,unit]
+                    #以指标 地区  地区代码 月为key ,年份 数值 单位为value建立词典 求同比数据
                     if base_data_dict.has_key(key):
                         base_data_dict[key].append(value_tmp_list)
                     else:
@@ -301,8 +303,10 @@ def generate_up_value(indicator_dir):
         growth_indicators = set()
         for indicator in indicator_set:
             if indicator.find("同比增长") == -1:
+                #基本指标
                 base_indicators.add(indicator)
             else:
+                #同比增长指标
                 growth_indicators.add(indicator)
         #calculate_indicators = set()
         growth_indicators = map(replace_growth, growth_indicators)
@@ -310,17 +314,18 @@ def generate_up_value(indicator_dir):
         #需要计算同比增长的指标集
         calculate_indicators = set()
         if len(base_indicators) == len(growth_indicators):
-            print "同比指标和基本指标个数相等",len(growth_indicators)
+            #print "同比指标和基本指标个数相等",len(growth_indicators)
             if base_indicators.issubset(growth_indicators) and growth_indicators.issubset(base_indicators):
-                print "同比指标和基本指标完全相同"
+                #print "同比指标和基本指标完全相同"
+                pass
             else:
-                print "同比指标和基本指标不完全相同"
+                #print "同比指标和基本指标不完全相同"
                 calculate_indicators = base_indicators - growth_indicators
-                print calculate_indicators
+                #print calculate_indicators
         else:
-            print "同比指标个数不等于基本指标个数"
-            print "同比指标个数:",len(growth_indicators)
-            print "基本指标个数:",len(base_indicators)
+            #print "同比指标个数不等于基本指标个数"
+            #print "同比指标个数:",len(growth_indicators)
+            #print "基本指标个数:",len(base_indicators)
             calculate_indicators = base_indicators - growth_indicators
                 #print '\n'.join(calculate_indicators)
             #按照月份来计算同比增长
@@ -330,10 +335,12 @@ def generate_up_value(indicator_dir):
                 tmp_indicator = key.split('@')[0]
                 if tmp_indicator in calculate_indicators:
                     num_dict = {}
+                    #单月数据 对应的年份、数值、单位
                     for year_item in value_list:
                         if len(year_item) == 3:
                             year,num,unit = year_item
                             year_no = year.strip('年')
+                            #不同年对应的数值和单位词典
                             num_dict[string.atoi(year_no)] = [string.atof(num),unit]
                         #对词典 按照年份排序 生成序列
                     sorted_list = sorteddict(num_dict)
@@ -364,6 +371,7 @@ def generate_up_value(indicator_dir):
             #outfilename = "/home/jay/workspace_new/HG_DATA/HG_CAL_DATA/" + os.path.basename(filename)[:-4]+"_calculated.txt"
             outfilename = filename
             #fout = open(outfilename,'w')
+            #输出
             fout = open(outfilename,'a+')        
             for line in cal_resut:
                 fout.write('\t'.join(line)+"\n")
@@ -373,7 +381,7 @@ def generate_up_value(indicator_dir):
         
 def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
     '''
-    
+        计算月度顺差与逆差地区数据，并排序
     '''
     f = open(filename)
     lines = f.readlines()
@@ -387,6 +395,7 @@ def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
         if len(item_list) == 2:
             cal_year = item_list[0]
             cal_month = item_list[1]
+            sys.stdout.write(cal_year+cal_month+"\r")
             year_num = string.atoi(cal_year.strip("年"))
             last_year = str(year_num-1)+"年"
             #filename = 'HG_CLS_DATA/HG7_data.txt'
@@ -477,20 +486,23 @@ def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
     fout_uf.close()
     fout.close()
     f.close()
+    print "顺差 逆差国别数据计算结束 ! "
         
     
 def location_trade(filename = 'HG_CLS_DATA/HG23_data.txt'):
     '''
-    分所在地，根据进口、出口数据计算进出口数据
+        分所在地，根据进口、出口数据计算进出口数据
     '''
-    print filename
-    print "计算商品出口总额(经营单位所在地)数据"
+    #print filename
+    #sys.stdout.write("计算商品出口总额经营单位所在地数据".decode('utf-8').encode(type))
+    sys.stdout.write("计算商品出口总额经营单位所在地数据 \n")
     year_months = get_year_and_month()
     for tmp_time in year_months:
         item_list = tmp_time.split('-')
         if len(item_list) == 2:
             cal_year = item_list[0]
             cal_month = item_list[1]
+            sys.stdout.write(cal_year+cal_month+"\r")
             cal_data = []
             with open(filename) as f:
                 line = f.readline()
@@ -522,6 +534,7 @@ def location_trade(filename = 'HG_CLS_DATA/HG23_data.txt'):
                     indicator,area,area_code,year,month,num,unit = tmp_list
                     #进口 出口 合并为一个指标
                     ex_im_indicator = replace_im_ex(indicator)
+                    #初始化对应的出口 进口值
                     ex_im_num_dict.setdefault(ex_im_indicator,['-','-',area,area_code,year,month,num,unit])
                     #当前地区添加出口数据
                     if indicator.find("出口") !=-1:
@@ -545,7 +558,8 @@ def location_trade(filename = 'HG_CLS_DATA/HG23_data.txt'):
                         k = k[pos+1:]
                     fout.write(k + "\t" + '\t'.join(out_list)+"\n")
             fout.close()
-    print "所在地进出口数据计算结束!"
+    sys.stdout.write("所在地进出口数据计算结束 ! ")
+    
         
 
 def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
@@ -554,7 +568,7 @@ def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
     '''
     rules = get_rules(cal_rule_name)
     data = read_data(cal_data_file_name)
-    tmp_i = 0
+    #tmp_i = 0
     #for k_t,v_t in data.iteritems():
                 #tmp_i += 1
                 #if tmp_i==10:
@@ -618,7 +632,6 @@ def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
                 ws.cell(cellname).value = '-'
     #DCL.Draw_Cells_Line(ws)
     wb.save(xls_name)
-    print ""
     
     
 def save_to_xls():
@@ -643,7 +656,7 @@ def save_to_xls():
                 print "文件夹复制失败",e
                 sys.exit()
             else:
-                print cur_save_dir_name,"文件夹复制成功"
+                print cur_save_dir_name,"文件夹复制成功 "
                 xls_file_list = os.listdir(cur_save_dir_name)
                 #获取xlsx文件名的基本名,切去掉后缀名
                 for xls_name in xls_file_list:
@@ -719,12 +732,12 @@ def generate_Rec(cal_year='2015年',cal_month='1月'):
     
                
 if __name__ == "__main__":
-    save_table_data("HG_INDICATOR/")
+    #save_table_data("HG_INDICATOR/")
     #explor_growth_indicator("HG_INDICATOR/")
     #generate_up_value("HG_CLS_DATA")
     #trade_top()
     #get_year_and_month()
-    #save_to_xls()
+    save_to_xls()
     #to_rec()
     #generate_Rec()
     print "End!"
