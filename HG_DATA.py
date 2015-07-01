@@ -18,7 +18,7 @@ type = sys.getfilesystemencoding()
 
 def load_dict(tdfile,key_col,value_col_list):
     """
-    根据文件和列来构造dict数据结构
+              根据文件和列来构造dict数据结构
     tdfile: 纯文本 表格样式的文件,列之间用"\t"分割 
     key_col:key列号,从0开始
     value_col_lilst:充当value的列号，列表形式[1,2,4],列号必须递增 
@@ -180,9 +180,6 @@ def read_data(fname):
                     data_dict.setdefault(key,[num,unit])
     return data_dict
                     
-            
-
-
 
 def save_table_data(indicator_dir):
     '''
@@ -719,19 +716,7 @@ def generate_Rec(cal_year='2015年',cal_month='1月'):
     fout.close()
     fin.close()
     
-    
-                
-            
-            
-            
-            
-    
-    
-    
-    
-    
-    
-                 
+               
 if __name__ == "__main__":
     #save_table_data("HG_INDICATOR/")
     #explor_growth_indicator("HG_INDICATOR/")

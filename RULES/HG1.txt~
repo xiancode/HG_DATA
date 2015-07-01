@@ -1,0 +1,17 @@
+行列号:指标名称||地区代码||年份||月份||单位||单月or累计
+B5:商品进出口总额[S]||xj35||default||default||百万美元||D
+B6:商品出口总额[S]||xj35||default||default||百万美元||D
+B7:商品进口总额[S]||xj35||default||default||百万美元||D
+B8:商品进出口贸易差额[S]||xj35||default||default||百万美元||D
+C5:商品进出口总额同比增长[S]||xj35||default||default||%||D
+C6:商品出口总额同比增长[S]||xj35||default||default||%||D
+C7:商品进口总额同比增长[S]||xj35||default||default||%||D
+C8:商品进出口贸易差额同比增长[S]||xj35||default||default||%||D
+D5:商品进出口总额[S]||xj35||default||default||百万美元||L
+D6:商品出口总额[S]||xj35||default||default||百万美元||L
+D7:商品进口总额[S]||xj35||default||default||百万美元||L
+D8:商品进出口贸易差额[S]||xj35||default||default||百万美元||L
+E5:商品进出口总额同比增长[S]||xj35||default||default||%||L
+E6:商品出口总额同比增长[S]||xj35||default||default||%||L
+E7:商品进口总额同比增长[S]||xj35||default||default||%||L
+E8:商品进出口贸易差额同比增长[S]||default||default||%||L
