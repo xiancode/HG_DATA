@@ -1,0 +1,47 @@
+#!/sur/bin/env  python2
+#-*-coding=utf-8-*-
+
+import os
+
+def save_table_data(indicator_dir):
+    '''
+    
+    '''
+    file_list = []
+    for root,dirs,filenames in os.walk(indicator_dir):
+        for filename in filenames:
+            file_list.append(os.path.join(root,filename))
+    
+    fin = open("jingji_2010_2015_table.txt")
+    data = fin.readlines()[1:]
+    
+    for filename in file_list:
+        print "当前处理文件:",filename
+        out_file_name = "HG_CLS_DATA/"+ os.path.basename(filename)[:-4]+"_data.txt"
+        fout = open(out_file_name,"w")
+        line_no = 0
+        with open(filename) as f:
+            lines = f.readlines()[1:]
+            for line in lines:
+                line_no += 1
+                if line_no%10000 == 0:
+                    print line_no
+                line = line.strip()
+                slist = line.split("=")
+                if len(slist) == 2:
+                    indicator = slist[1]
+                    for item in data:
+                        item_list = item.split("\t")
+                        if indicator == item_list[0]:
+                            fout.write(item)
+        fout.close()
+                        
+
+if __name__ == "__main__":
+    save_table_data("HG_INDICATOR")
+    print "End!"
+    
+    
+    
+    
+    

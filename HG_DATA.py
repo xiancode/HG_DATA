@@ -192,7 +192,7 @@ def save_table_data(indicator_dir):
     data = fin.readlines()[1:]
     
     for filename in file_list:
-        print "process:",filename
+        print "正在保存数据:".decode('utf-8').encode(type),filename
         #filename = "HG_INDICATOR/HG1.txt"
         out_file_name = "HG_CLS_DATA/"+ os.path.basename(filename)[:-4]+"_data.txt"
         #out_file_name = "HG_CLS_DATA/"+ "test"+"_data.txt"
@@ -202,8 +202,9 @@ def save_table_data(indicator_dir):
             line_no = 0
             for line in lines:
                 line_no += 1
-                if line_no%50 == 0:
-                    print line_no,"\r"
+                if line_no%10 == 0:
+                    sys.stdout.write("抽取指标数:".decode('utf-8').encode(type)+str(line_no)+"\r")
+                    #print line_no,"\r"
                 line = line.strip()
                 slist = line.split("=")
                 if len(slist) == 2:
@@ -718,14 +719,14 @@ def generate_Rec(cal_year='2015年',cal_month='1月'):
     
                
 if __name__ == "__main__":
-    #save_table_data("HG_INDICATOR/")
+    save_table_data("HG_INDICATOR/")
     #explor_growth_indicator("HG_INDICATOR/")
     #generate_up_value("HG_CLS_DATA")
     #trade_top()
     #get_year_and_month()
     #save_to_xls()
     #to_rec()
-    generate_Rec()
+    #generate_Rec()
     print "End!"
     
     
