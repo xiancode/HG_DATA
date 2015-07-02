@@ -7,3 +7,7 @@
 /HG_CLS_DATA - 副本/
 /HG_CLS_DATA_/
 /XLS_DATA/
+/.gitignore
+/.project
+/.pydevproject
+/.settings/
