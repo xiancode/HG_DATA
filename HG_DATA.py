@@ -11,7 +11,8 @@ import shutil
 import errno
 from openpyxl import Workbook
 from openpyxl import load_workbook
-import  Draw_Cells_Line as DCL
+#import  Draw_Cells_Line as DCL
+import Rec2Table
 
 type = sys.getfilesystemencoding()
 
@@ -85,7 +86,7 @@ def copy_and_overwrite(from_path, to_path):
         shutil.rmtree(to_path)
     shutil.copytree(from_path, to_path)
 
-def get_year_and_month(startyear=2011,startmonth=1,endyear=2015,endmonth=4):
+def get_year_and_month(startyear=2011,startmonth=1,endyear=2015,endmonth=5):
     '''
     
     '''
@@ -181,14 +182,14 @@ def read_data(fname):
     return data_dict
                     
 
-def save_table_data(indicator_dir):
+def save_table_data(table_file_name,indicator_dir):
     '''
     
     '''
     file_list = get_file_from_dir(indicator_dir)
     
     #fin = open("2010_2015_allmonth_table.txt")
-    fin = open("2010_2015_all_month_data_v0625_table.txt")
+    fin = open(table_file_name)
     data = fin.readlines()[1:]
     
     for filename in file_list:
@@ -701,19 +702,27 @@ def to_rec():
     fout.close()
                 
                 
-def generate_Rec(cal_year='2015年',cal_month='1月'):
+def generate_Rec(cal_year='2015年',cal_month='5月'):
     '''
     
     '''
     main_monthly_hot_name = "Rec/CJFYHG_MAIN_MONTHLY_HOT_rec.txt"
     fin = open(main_monthly_hot_name)
     out_filename = main_monthly_hot_name.strip(".txt") + cal_year +"_" + cal_month + ".txt"
-    fout = open(out_filename)
+    fout = open(out_filename,"w")
     lines = fin.readlines()
     for line in lines:
-        fout.write(string.replace(line, "xxxx_x", cal_year +"_"+cal_month))
-        fout.write(string.replace(line, "xxxx年", cal_year))
-        fout.write(string.replace(line, "x月", cal_month))
+        if line.find( "xxxx_x") != -1:
+            fout.write(string.replace(line, "xxxx_x", cal_year +"_"+cal_month))
+            continue
+        elif line.find("xxxx年") !=-1:
+            fout.write(string.replace(line, "xxxx年", cal_year))
+            continue
+        elif line.find("x月") != -1:
+            fout.write(string.replace(line, "x月", cal_month))
+            continue
+        else:
+            fout.write(line)
     fout.close()
     fin.close()
     
@@ -721,25 +730,29 @@ def generate_Rec(cal_year='2015年',cal_month='1月'):
     sub_monthly_hot_name = "Rec/CJFYHG_SUBJECT_MONTHLY_HOT_rec.txt"
     fin = open(sub_monthly_hot_name)
     out_filename = sub_monthly_hot_name.strip(".txt") + cal_year +"_" + cal_month + ".txt"
-    fout = open(out_filename)
+    fout = open(out_filename,"w")
     lines = fin.readlines()
     for line in lines:
         #fout.write(string.replace(line, "xxxx_x", cal_year +"_"+cal_month))
-        fout.write(string.replace(line, "xxxx年", cal_year))
-        fout.write(string.replace(line, "x月", cal_month))
+        if line.find("xxxx年") != -1:
+            fout.write(string.replace(line, "xxxx年", cal_year))
+            continue
+        elif line.find("x月") != -1:
+            fout.write(string.replace(line, "x月", cal_month))
+            continue
+        else:
+            fout.write(line)
     fout.close()
     fin.close()
     
                
 if __name__ == "__main__":
-    #save_table_data("HG_INDICATOR/")
-    #explor_growth_indicator("HG_INDICATOR/")
+    #tb_name = Rec2Table.Rec2Table('HG_2010_2015_0703.txt', 'HG_2010_2015_0703_table.txt')
+    #save_table_data(tb_name,"HG_INDICATOR/")
     #generate_up_value("HG_CLS_DATA")
     #trade_top()
-    #get_year_and_month()
-    save_to_xls()
-    #to_rec()
-    #generate_Rec()
+    #save_to_xls()
+    generate_Rec()
     print "End!"
     
     

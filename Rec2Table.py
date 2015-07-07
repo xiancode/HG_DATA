@@ -64,6 +64,7 @@ def Rec2Table(rec_filename,table_name,max_fields_num=100):
             values = []
     fout.close()
     print "转化".decode("utf-8").encode(type),records,"条记录".decode("utf-8").encode(type)
+    return table_name
     
 
     
