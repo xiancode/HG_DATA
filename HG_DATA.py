@@ -1,6 +1,13 @@
 #!/sur/bin/env  python2
 #-*-coding=utf-8-*-
 
+'''
+Description     :  海关数据更新xlsx 、rec文件生成程序
+require :openpyxl
+author shizhongxian@126.com
+usage  $python HG_DATA.py  -f  haiguan_2015_08_25.txt
+haiguan_2015_08_25.txt 文件为从kbase导出的rec文件
+'''
 
 
 import os
@@ -11,6 +18,7 @@ import shutil
 import errno
 from openpyxl import Workbook
 from openpyxl import load_workbook
+from optparse import OptionParser
 #import  Draw_Cells_Line as DCL
 import Rec2Table
 
@@ -765,16 +773,29 @@ def generate_Rec(cal_year='2015',cal_month='5'):
     fout.close()
     fin.close()
     
-    
-    
-               
 if __name__ == "__main__":
+    optparser = OptionParser()
+    optparser.add_option('-f', '--inputFile',
+                         dest='input',
+                         help='filename of haiguan  rec data',
+                         default=None)
+    (options, args) = optparser.parse_args()
+    inFile = None
+    if options.input is None:
+            inFile = sys.stdin
+            #inFile = "INTEGRATED-DATASET.csv"
+    elif options.input is not None:
+            inFile = options.input
+    else:
+            print 'No dataset filename specified, system with exit\n'
+            sys.exit('System will exit')
+    
     start_year,start_month,end_year,end_month = [2011,1,2015,6]
-    #tb_name = Rec2Table.Rec2Table('haiguan_2015_08_25.txt', 'hg_table.txt')
-    #save_table_data(tb_name,"HG_INDICATOR/")
-    #generate_up_value("HG_CLS_DATA",start_year,start_month,end_year,end_month)
-    #trade_top( 'HG_CLS_DATA/HG7_data.txt',start_year,start_month,end_year,end_month)
-    #save_to_xls(start_year,start_month,end_year,end_month)
+    tb_name = Rec2Table.Rec2Table(inFile, 'hg_table.txt')
+    save_table_data(tb_name,"HG_INDICATOR/")
+    generate_up_value("HG_CLS_DATA",start_year,start_month,end_year,end_month)
+    trade_top( 'HG_CLS_DATA/HG7_data.txt',start_year,start_month,end_year,end_month)
+    save_to_xls(start_year,start_month,end_year,end_month)
     generate_Rec(cal_year=str(end_year),cal_month=str(end_month))
     print "End!"
     
