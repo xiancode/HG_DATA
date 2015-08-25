@@ -86,7 +86,7 @@ def copy_and_overwrite(from_path, to_path):
         shutil.rmtree(to_path)
     shutil.copytree(from_path, to_path)
 
-def get_year_and_month(startyear=2011,startmonth=1,endyear=2015,endmonth=5):
+def get_year_and_month(startyear,startmonth,endyear,endmonth):
     '''
     
     '''
@@ -261,7 +261,7 @@ def explor_growth_indicator(indicator_dir):
     print '\n'.join(no_growth_indicators_tables)
     
     
-def generate_up_value(indicator_dir):
+def generate_up_value(indicator_dir,start_year,start_month,end_year,end_month):
     '''
         对没有同比数据的指标产生同比数据
     '''
@@ -273,9 +273,9 @@ def generate_up_value(indicator_dir):
         #对HG20_data  HG23_data文件,计算分地区进出口综合
         if filename.find('HG20_data') !=-1 or filename.find('HG23_data') !=-1:
             #计算地区进出口数据
-            location_trade(filename)
-#         if filename.find('HG23_data') !=-1:
-#             location_trade(filename)
+            location_trade(filename,start_year,start_month,end_year,end_month)
+#         #if filename.find('HG23_data') !=-1:
+#         #    location_trade(filename)
             
         #以指标 地区 地区代码 月份为Key
         #以年份 数值 为value建立字典
@@ -380,7 +380,7 @@ def generate_up_value(indicator_dir):
         #
         print filename,"calculate end!"
         
-def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
+def trade_top(filename ,start_year,start_month,end_year,end_month):
     '''
         计算月度顺差与逆差地区数据，并排序
     '''
@@ -390,7 +390,7 @@ def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
     fout = open(outfile_name,"w")
     outfile_name_uf = "HG_CLS_DATA/HG9_data.txt"
     fout_uf = open(outfile_name_uf,"w")
-    year_months = get_year_and_month()
+    year_months = get_year_and_month(start_year,start_month,end_year,end_month)
     for tmp_time in year_months:
         item_list = tmp_time.split('-')
         if len(item_list) == 2:
@@ -490,14 +490,14 @@ def trade_top(filename = 'HG_CLS_DATA/HG7_data.txt'):
     print "顺差 逆差国别数据计算结束 ! "
         
     
-def location_trade(filename = 'HG_CLS_DATA/HG23_data.txt'):
+def location_trade(filename,start_year,start_month,end_year,end_month):
     '''
         分所在地，根据进口、出口数据计算进出口数据
     '''
     #print filename
     #sys.stdout.write("计算商品出口总额经营单位所在地数据".decode('utf-8').encode(type))
     sys.stdout.write("计算商品出口总额经营单位所在地数据 \n")
-    year_months = get_year_and_month()
+    year_months = get_year_and_month(start_year,start_month,end_year,end_month)
     for tmp_time in year_months:
         item_list = tmp_time.split('-')
         if len(item_list) == 2:
@@ -635,11 +635,11 @@ def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
     wb.save(xls_name)
     
     
-def save_to_xls():
+def save_to_xls(start_year,start_month,end_year,end_month):
     '''
     
     '''
-    year_months = get_year_and_month()
+    year_months = get_year_and_month(start_year,start_month,end_year,end_month)
     #逐月处理
     for tmp_time in year_months:
         item_list = tmp_time.split('-')
@@ -702,24 +702,44 @@ def to_rec():
     fout.close()
                 
                 
-def generate_Rec(cal_year='2015年',cal_month='5月'):
+def generate_Rec(cal_year='2015',cal_month='5'):
     '''
     
     '''
-    main_monthly_hot_name = "Rec/CJFYHG_MAIN_MONTHLY_HOT_rec.txt"
-    fin = open(main_monthly_hot_name)
-    out_filename = main_monthly_hot_name.strip(".txt") + cal_year +"_" + cal_month + ".txt"
+    long_month = ''
+    if len(cal_month) == 1:
+        long_month = '0'+cal_month
+    else:
+        long_month = cal_month
+        
+    cjfyhg_htmlpreview = "Rec/CJFYHG_HTMLPREVIEW.txt"
+    fin = open(cjfyhg_htmlpreview)
+    out_filename = cjfyhg_htmlpreview.strip(".txt")+cal_year+"_" + cal_month + ".rec"
     fout = open(out_filename,"w")
     lines = fin.readlines()
     for line in lines:
-        if line.find( "xxxx_x") != -1:
-            fout.write(string.replace(line, "xxxx_x", cal_year +"_"+cal_month))
+        if line.find( "ym") != -1:
+            fout.write(string.replace(line, "ym", cal_year +long_month))
             continue
-        elif line.find("xxxx年") !=-1:
-            fout.write(string.replace(line, "xxxx年", cal_year))
+        else:
+            fout.write(line)
+    fout.close()
+    fin.close()
+    
+    main_monthly_hot_name = "Rec/CJFYHG_MAIN_MONTHLY_HOT.txt"
+    fin = open(main_monthly_hot_name)
+    out_filename = main_monthly_hot_name.strip(".txt") + cal_year +"_" + cal_month + ".rec"
+    fout = open(out_filename,"w")
+    lines = fin.readlines()
+    for line in lines:
+        if line.find( "ym") != -1:
+            fout.write(string.replace(line, "ym", cal_year +long_month))
             continue
-        elif line.find("x月") != -1:
-            fout.write(string.replace(line, "x月", cal_month))
+        elif line.find("year") !=-1:
+            fout.write(string.replace(line, "year", cal_year))
+            continue
+        elif line.find("month") != -1:
+            fout.write(string.replace(line, "month", cal_month))
             continue
         else:
             fout.write(line)
@@ -727,32 +747,35 @@ def generate_Rec(cal_year='2015年',cal_month='5月'):
     fin.close()
     
     
-    sub_monthly_hot_name = "Rec/CJFYHG_SUBJECT_MONTHLY_HOT_rec.txt"
+    sub_monthly_hot_name = "Rec/CJFYHG_SUBJECT_MONTHLY_HOT.txt"
     fin = open(sub_monthly_hot_name)
-    out_filename = sub_monthly_hot_name.strip(".txt") + cal_year +"_" + cal_month + ".txt"
+    out_filename = sub_monthly_hot_name.strip(".txt") + cal_year +"_" + cal_month + ".rec"
     fout = open(out_filename,"w")
     lines = fin.readlines()
     for line in lines:
         #fout.write(string.replace(line, "xxxx_x", cal_year +"_"+cal_month))
-        if line.find("xxxx年") != -1:
-            fout.write(string.replace(line, "xxxx年", cal_year))
+        if line.find("year") != -1:
+            fout.write(string.replace(line, "year", cal_year))
             continue
-        elif line.find("x月") != -1:
-            fout.write(string.replace(line, "x月", cal_month))
+        elif line.find("month") != -1:
+            fout.write(string.replace(line, "month", long_month))
             continue
         else:
             fout.write(line)
     fout.close()
     fin.close()
     
+    
+    
                
 if __name__ == "__main__":
-    #tb_name = Rec2Table.Rec2Table('HG_2010_2015_0703.txt', 'HG_2010_2015_0703_table.txt')
+    start_year,start_month,end_year,end_month = [2011,1,2015,6]
+    #tb_name = Rec2Table.Rec2Table('haiguan_2015_08_25.txt', 'hg_table.txt')
     #save_table_data(tb_name,"HG_INDICATOR/")
-    #generate_up_value("HG_CLS_DATA")
-    #trade_top()
-    #save_to_xls()
-    generate_Rec()
+    #generate_up_value("HG_CLS_DATA",start_year,start_month,end_year,end_month)
+    #trade_top( 'HG_CLS_DATA/HG7_data.txt',start_year,start_month,end_year,end_month)
+    #save_to_xls(start_year,start_month,end_year,end_month)
+    generate_Rec(cal_year=str(end_year),cal_month=str(end_month))
     print "End!"
     
     
