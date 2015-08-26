@@ -38,15 +38,15 @@ def load_dict(tdfile,key_col,value_col_list):
     line = fin.readline()
     line = line.strip()
     if len(line.split("\t"))-1 < value_col_list[-1] or len(line.split("\t"))-1 < key_col :
-        print "输入的列号大于文件列号"
+        print "输入的列号大于文件列号".decode("utf-8").encode(type)
         sys.exit() 
     while line:
         line_no += 1
         if line_no%500==0:
-            print "加载数据 ",line_no," "
+            print "加载数据 ".decode("utf-8").encode(type),line_no," "
         items = line.split("\t")
         if len(items)-1 < value_col_list[-1] or len(items)-1 < key_col:
-            print line," 列数小于输入的列数"
+            print line," 列数小于输入的列数".decode("utf-8").encode(type)
         else:
             if result.has_key(items[key_col]):
                 pass
@@ -77,7 +77,7 @@ def unit_trans(src_unit,tar_unit,num):
     if unit_dict.has_key(tmp_s):
         return float(num)*unit_dict[tmp_s]
     else:
-        print src_unit,tar_unit,"单位转化失败"
+        print src_unit,tar_unit,"单位转化失败".decode("utf-8").encode(type)
         return False
     
 
@@ -165,7 +165,7 @@ def get_rules(rulefile_name):
                 k = item_list[0]
                 rule = item_list[1]
                 if rules_dict.has_key(k):
-                    print "规则中有重复,请检查",rulefile_name
+                    print "规则中有重复,请检查".decode("utf-8").encode(type),rulefile_name
                 else:
                     rules_dict.setdefault(k,rule)
     return rules_dict
@@ -256,15 +256,15 @@ def explor_growth_indicator(indicator_dir):
         growth_indicator = map(replace_growth, growth_indicator)
         growth_indicator = set(growth_indicator)
         if len(base_indicators) == len(growth_indicator):
-            print "同比指标和基本指标个数相等",len(growth_indicator)
+            print "同比指标和基本指标个数相等".decode("utf-8").encode(type),len(growth_indicator)
             if base_indicators.issubset(growth_indicator) and growth_indicator.issubset(base_indicators):
-                print "同比指标和基本指标完全相同"
+                print "同比指标和基本指标完全相同".decode("utf-8").encode(type)
             else:
-                print "同比指标和基本指标不完全相同"
+                print "同比指标和基本指标不完全相同".decode("utf-8").encode(type)
         else:
-            print "同比指标个数不等于基本指标个数"
-            print "同比指标个数:",len(growth_indicator)
-            print "基本指标个数:",len(base_indicators)
+            print "同比指标个数不等于基本指标个数".decode("utf-8").encode(type)
+            print "同比指标个数:".decode("utf-8").encode(type),len(growth_indicator)
+            print "基本指标个数:".decode("utf-8").encode(type),len(base_indicators)
             no_growth_indicators_tables.append(filename)
     print '\n'.join(no_growth_indicators_tables)
     
@@ -603,8 +603,6 @@ def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
     dataIni=dataIni.decode('utf-8')
     ws.cell('A1').value=exlTitle.replace(dataIni,dataCh)
     
-    
-    
     for cellname,rule in rules.iteritems():
         rule_item_list = rule.split("||")
         if len(rule_item_list) == 6:
@@ -665,7 +663,7 @@ def save_to_xls(start_year,start_month,end_year,end_month):
                 print "文件夹复制失败",e
                 sys.exit()
             else:
-                print cur_save_dir_name,"文件夹复制成功 "
+                print cur_save_dir_name,"文件夹复制成功 ".decode("utf-8").encode(type)
                 xls_file_list = os.listdir(cur_save_dir_name)
                 #获取xlsx文件名的基本名,切去掉后缀名
                 for xls_name in xls_file_list:
@@ -676,7 +674,7 @@ def save_to_xls(start_year,start_month,end_year,end_month):
                 rule_file_name = os.path.join("RULES/",bname+'.txt')
                 xls_file_name   = os.path.join(cur_save_dir_name,bname+'.xlsx')
                 data_to_excel(cur_year, cur_month, data_file_name, rule_file_name,xls_file_name)
-            print tmp_time,"转化完毕"
+            print tmp_time,"转化完毕".decode("utf-8").encode(type)
             
 def to_rec():
     '''
