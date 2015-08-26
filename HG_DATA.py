@@ -652,7 +652,7 @@ def save_to_xls(start_year,start_month,end_year,end_month):
         if len(item_list) == 2:
             cur_year = item_list[0]
             cur_month = item_list[1]
-            print tmp_time
+            print tmp_time.decode("utf-8").encode(type)
             cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
             basenames = []
             try:
@@ -674,7 +674,7 @@ def save_to_xls(start_year,start_month,end_year,end_month):
                 rule_file_name = os.path.join("RULES/",bname+'.txt')
                 xls_file_name   = os.path.join(cur_save_dir_name,bname+'.xlsx')
                 data_to_excel(cur_year, cur_month, data_file_name, rule_file_name,xls_file_name)
-            print tmp_time,"转化完毕".decode("utf-8").encode(type)
+            print tmp_time.decode("utf-8").encode(type),"转化完毕".decode("utf-8").encode(type)
             
 def to_rec():
     '''
