@@ -38,7 +38,7 @@ def Rec2Table(rec_filename,table_name,max_fields_num=100):
     fin.close()
     fout.write("\t".join(indicators)+"\n")
     #
-    print "当前REC文件中指标为:".decode("utf-8").encode(type)
+    print "当前REC文件中字段为:".decode("utf-8").encode(type)
     for indicator in indicators:
         print indicator.decode("utf-8").encode(type)
     # 转化为table

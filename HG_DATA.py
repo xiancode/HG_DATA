@@ -788,7 +788,7 @@ if __name__ == "__main__":
             print 'No dataset filename specified, system with exit\n'
             sys.exit('System will exit')
     
-    start_year,start_month,end_year,end_month = [2011,1,2015,6]
+    start_year,start_month,end_year,end_month = [2011,1,2015,8]
     tb_name = Rec2Table.Rec2Table(inFile, 'hg_table.txt')
     save_table_data(tb_name,"HG_INDICATOR/")
     generate_up_value("HG_CLS_DATA",start_year,start_month,end_year,end_month)
