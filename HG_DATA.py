@@ -646,7 +646,8 @@ def save_to_xls():
             cur_year = item_list[0]
             cur_month = item_list[1]
             print tmp_time
-            cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
+            #cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
+            cur_save_dir_name = "XLS_DATA"+ os.path.sep + cur_year.strip("年")+os.path.sep + cur_month.strip("月") 
             basenames = []
             try:
                 #复制文件到当月文件夹
