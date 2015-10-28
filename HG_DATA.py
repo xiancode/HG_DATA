@@ -652,8 +652,11 @@ def save_to_xls(start_year,start_month,end_year,end_month):
         if len(item_list) == 2:
             cur_year = item_list[0]
             cur_month = item_list[1]
+
             print tmp_time.decode("utf-8").encode(type)
-            cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
+            #cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
+            cur_save_dir_name = "XLS_DATA"+ os.path.sep + cur_year.strip("年")+os.path.sep + cur_month.strip("月") 
+
             basenames = []
             try:
                 #复制文件到当月文件夹
