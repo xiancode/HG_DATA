@@ -807,12 +807,12 @@ if __name__ == "__main__":
             sys.exit('System will exit')
 
     start_year,start_month,end_year,end_month = [2011,1,2015,8]
-    #tb_name = Rec2Table.Rec2Table(inFile, 'hg_table.txt')
-    #save_table_data(tb_name,"HG_INDICATOR/")
+    tb_name = Rec2Table.Rec2Table(inFile, 'hg_table.txt')
+    save_table_data(tb_name,"HG_INDICATOR/")
     generate_up_value("HG_CLS_DATA",start_year,start_month,end_year,end_month)
     trade_top( 'HG_CLS_DATA/HG7_data.txt',start_year,start_month,end_year,end_month)
-    #save_to_xls(start_year,start_month,end_year,end_month)
-    #generate_Rec(cal_year=str(end_year),cal_month=str(end_month))
+    save_to_xls(start_year,start_month,end_year,end_month)
+    generate_Rec(cal_year=str(end_year),cal_month=str(end_month))
     print "End!"
     
     
