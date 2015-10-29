@@ -37,10 +37,10 @@ def Rec2Table(rec_filename,table_name,max_fields_num=100):
             break;
     fin.close()
     fout.write("\t".join(indicators)+"\n")
-    #
-    print "当前REC文件中字段为:".decode("utf-8").encode(type)
+    #sys.stdout.write
+    sys.stdout.write("当前REC文件中字段为:".decode("utf-8").encode(type)+"\n")
     for indicator in indicators:
-        print indicator.decode("utf-8").encode(type)
+        sys.stdout.write(indicator.decode("utf-8").encode(type)+"\n")
     # 转化为table
     line_no  = 0
     fin    = open(rec_filename)
@@ -63,7 +63,7 @@ def Rec2Table(rec_filename,table_name,max_fields_num=100):
                 records += 1
             values = []
     fout.close()
-    print "转化".decode("utf-8").encode(type),records,"条记录".decode("utf-8").encode(type)
+    sys.stdout.write("转化".decode("utf-8").encode(type)+str(records)+"条记录".decode("utf-8").encode(type)+"\n")
     return table_name
     
 

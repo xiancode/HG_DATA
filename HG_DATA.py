@@ -21,8 +21,14 @@ from openpyxl import load_workbook
 from optparse import OptionParser
 #import  Draw_Cells_Line as DCL
 import Rec2Table
+import platform
 
-type = sys.getfilesystemencoding()
+global scode_type
+scode_type = sys.getfilesystemencoding()
+if platform.system() == "Windows":
+    scode_type = "gbk"
+else:
+    scode_type ="utf-8"
 
 
 def load_dict(tdfile,key_col,value_col_list):
@@ -38,15 +44,15 @@ def load_dict(tdfile,key_col,value_col_list):
     line = fin.readline()
     line = line.strip()
     if len(line.split("\t"))-1 < value_col_list[-1] or len(line.split("\t"))-1 < key_col :
-        print "输入的列号大于文件列号".decode("utf-8").encode(type)
+        print "输入的列号大于文件列号"
         sys.exit() 
     while line:
         line_no += 1
         if line_no%500==0:
-            print "加载数据 ".decode("utf-8").encode(type),line_no," "
+            print "加载数据 ",line_no," "
         items = line.split("\t")
         if len(items)-1 < value_col_list[-1] or len(items)-1 < key_col:
-            print line," 列数小于输入的列数".decode("utf-8").encode(type)
+            print line," 列数小于输入的列数"
         else:
             if result.has_key(items[key_col]):
                 pass
@@ -77,7 +83,7 @@ def unit_trans(src_unit,tar_unit,num):
     if unit_dict.has_key(tmp_s):
         return float(num)*unit_dict[tmp_s]
     else:
-        print src_unit,tar_unit,"单位转化失败".decode("utf-8").encode(type)
+        print src_unit,tar_unit,"单位转化失败"
         return False
     
 
@@ -165,7 +171,7 @@ def get_rules(rulefile_name):
                 k = item_list[0]
                 rule = item_list[1]
                 if rules_dict.has_key(k):
-                    print "规则中有重复,请检查".decode("utf-8").encode(type),rulefile_name
+                    print "规则中有重复,请检查",rulefile_name
                 else:
                     rules_dict.setdefault(k,rule)
     return rules_dict
@@ -201,9 +207,9 @@ def save_table_data(table_file_name,indicator_dir):
     data = fin.readlines()[1:]
     
     for filename in file_list:
-        print "正在保存数据:".decode('utf-8').encode(type),filename
+        print "正在保存数据:".decode('utf-8').encode(scode_type),filename
         #filename = "HG_INDICATOR/HG1.txt"
-        out_file_name = "HG_CLS_DATA/"+ os.path.basename(filename)[:-4]+"_data.txt"
+        out_file_name = "HG_CLS_DATA" + os.path.sep + os.path.basename(filename)[:-4]+"_data.txt"
         #out_file_name = "HG_CLS_DATA/"+ "test"+"_data.txt"
         fout = open(out_file_name,"w")
         with open(filename) as f:
@@ -212,7 +218,7 @@ def save_table_data(table_file_name,indicator_dir):
             for line in lines:
                 line_no += 1
                 if line_no%10 == 0:
-                    sys.stdout.write("抽取指标数:".decode('utf-8').encode(type)+str(line_no)+"\r")
+                    sys.stdout.write("抽取指标数:".decode('utf-8').encode(scode_type)+str(line_no)+"\r")
                     #print line_no,"\r"
                 line = line.strip()
                 slist = line.split("=")
@@ -256,15 +262,15 @@ def explor_growth_indicator(indicator_dir):
         growth_indicator = map(replace_growth, growth_indicator)
         growth_indicator = set(growth_indicator)
         if len(base_indicators) == len(growth_indicator):
-            print "同比指标和基本指标个数相等".decode("utf-8").encode(type),len(growth_indicator)
+            print "同比指标和基本指标个数相等",len(growth_indicator)
             if base_indicators.issubset(growth_indicator) and growth_indicator.issubset(base_indicators):
-                print "同比指标和基本指标完全相同".decode("utf-8").encode(type)
+                print "同比指标和基本指标完全相同"
             else:
-                print "同比指标和基本指标不完全相同".decode("utf-8").encode(type)
+                print "同比指标和基本指标不完全相同"
         else:
-            print "同比指标个数不等于基本指标个数".decode("utf-8").encode(type)
-            print "同比指标个数:".decode("utf-8").encode(type),len(growth_indicator)
-            print "基本指标个数:".decode("utf-8").encode(type),len(base_indicators)
+            print "同比指标个数不等于基本指标个数"
+            print "同比指标个数:",len(growth_indicator)
+            print "基本指标个数:",len(base_indicators)
             no_growth_indicators_tables.append(filename)
     print '\n'.join(no_growth_indicators_tables)
     
@@ -366,10 +372,9 @@ def generate_up_value(indicator_dir,start_year,start_month,end_year,end_month):
                             if cur_num_unit[1] == last_num_unit[1]:
                                 ratio_num = round((cur_num_unit[0]/last_num_unit[0]-1)*100,2)
                                 #print (cur_num_unit[0]/last_num_unit[0]-1)*100
-                                
                                 up_nums.append([cur_cal_year,ratio_num])
                             else:
-                                print key,cur_cal_year,"单位不统一"
+                                sys.stdout.write(key+"\t"+cur_cal_year+"单位不统一"+"\n")
                         #保存计算得到的数据
                     out_indicator,out_area,out_area_code,out_month = key.split('@')
                     out_indicator += "同比增长[S]"
@@ -404,7 +409,7 @@ def trade_top(filename ,start_year,start_month,end_year,end_month):
         if len(item_list) == 2:
             cal_year = item_list[0]
             cal_month = item_list[1]
-            sys.stdout.write(cal_year+cal_month+"\r")
+            sys.stdout.write(cal_year.decode('utf-8').encode(scode_type)+cal_month.decode('utf-8').encode(scode_type)+"\r")
             year_num = string.atoi(cal_year.strip("年"))
             last_year = str(year_num-1)+"年"
             #filename = 'HG_CLS_DATA/HG7_data.txt'
@@ -495,7 +500,7 @@ def trade_top(filename ,start_year,start_month,end_year,end_month):
     fout_uf.close()
     fout.close()
     f.close()
-    print "顺差 逆差国别数据计算结束 ! "
+    sys.stdout.write("顺差 逆差国别数据计算结束 ! ".decode('utf-8').encode(scode_type))
         
     
 def location_trade(filename,start_year,start_month,end_year,end_month):
@@ -503,15 +508,15 @@ def location_trade(filename,start_year,start_month,end_year,end_month):
         分所在地，根据进口、出口数据计算进出口数据
     '''
     #print filename
-    #sys.stdout.write("计算商品出口总额经营单位所在地数据".decode('utf-8').encode(type))
-    sys.stdout.write("计算商品出口总额经营单位所在地数据 \n")
+    sys.stdout.write("计算商品出口总额经营单位所在地数据".decode('utf-8').encode(scode_type)+"\n")
+    #sys.stdout.write("计算商品出口总额经营单位所在地数据")
     year_months = get_year_and_month(start_year,start_month,end_year,end_month)
     for tmp_time in year_months:
         item_list = tmp_time.split('-')
         if len(item_list) == 2:
             cal_year = item_list[0]
             cal_month = item_list[1]
-            sys.stdout.write(cal_year+cal_month+"\r")
+            sys.stdout.write(cal_year.decode("utf-8").encode(scode_type)+cal_month.decode("utf-8").encode(scode_type)+"\r")
             cal_data = []
             with open(filename) as f:
                 line = f.readline()
@@ -567,7 +572,7 @@ def location_trade(filename,start_year,start_month,end_year,end_month):
                         k = k[pos+1:]
                     fout.write(k + "\t" + '\t'.join(out_list)+"\n")
             fout.close()
-    sys.stdout.write("所在地进出口数据计算结束 ! ")
+    sys.stdout.write("所在地进出口数据计算结束 !".decode("utf-8").encode(scode_type)+"\n")
     
         
 
@@ -638,13 +643,17 @@ def data_to_excel(cal_year,cal_month,cal_data_file_name,cal_rule_name,xls_name):
             else:
                 ws.cell(cellname).value = '-'
     #DCL.Draw_Cells_Line(ws)
-    wb.save(xls_name)
+    try:
+        wb.save(xls_name)
+    except Exception,e:
+        sys.stdout.write("write error :"+xls_name.decode("utf-8").encode(scode_type)+str(e)+"\n")
     
     
 def save_to_xls(start_year,start_month,end_year,end_month):
     '''
     
     '''
+    global scode_type
     year_months = get_year_and_month(start_year,start_month,end_year,end_month)
     #逐月处理
     for tmp_time in year_months:
@@ -653,7 +662,8 @@ def save_to_xls(start_year,start_month,end_year,end_month):
             cur_year = item_list[0]
             cur_month = item_list[1]
 
-            print tmp_time.decode("utf-8").encode(type)
+            #print tmp_time.decode("utf-8").encode(scode_type)
+            sys.stdout.write(tmp_time.decode("utf-8").encode(scode_type)+"\t")
             #cur_save_dir_name = "XLS_DATA/"+cur_year.strip("年")+"/"+ cur_month.strip("月") + "/"
             cur_save_dir_name = "XLS_DATA"+ os.path.sep + cur_year.strip("年")+os.path.sep + cur_month.strip("月") 
 
@@ -661,23 +671,28 @@ def save_to_xls(start_year,start_month,end_year,end_month):
             try:
                 #复制文件到当月文件夹
                 #copyanything('XLS_MODULE/',cur_save_dir_name)
-                copy_and_overwrite('XLS_MODULE/', cur_save_dir_name)
+                copy_and_overwrite('XLS_MODULE'+os.path.sep, cur_save_dir_name)
             except Exception,e:
-                print "文件夹复制失败",e
+                sys.stdout.write("文件夹复制失败"+e+"\n")
                 sys.exit()
             else:
-                print cur_save_dir_name,"文件夹复制成功 ".decode("utf-8").encode(type)
+                #print cur_save_dir_name,"文件夹复制成功 ".decode("utf-8").encode(scode_type)
+                sys.stdout.write(cur_save_dir_name)
+                sys.stdout.write("文件夹创建成功 ".decode("utf-8").encode(scode_type)+"\n")
+                
                 xls_file_list = os.listdir(cur_save_dir_name)
                 #获取xlsx文件名的基本名,切去掉后缀名
                 for xls_name in xls_file_list:
                     basenames.append(os.path.basename(xls_name).strip(".xlsx"))
             #basenames = ['HG1','HG2']
             for bname in basenames:
-                data_file_name = os.path.join("HG_CLS_DATA/",bname+'_data.txt')
+                data_file_name = os.path.join("HG_CLS_DATA"+os.path.sep,bname+'_data.txt')
                 rule_file_name = os.path.join("RULES/",bname+'.txt')
                 xls_file_name   = os.path.join(cur_save_dir_name,bname+'.xlsx')
                 data_to_excel(cur_year, cur_month, data_file_name, rule_file_name,xls_file_name)
-            print tmp_time.decode("utf-8").encode(type),"转化完毕".decode("utf-8").encode(type)
+            #print tmp_time.decode("utf-8").encode(scode_type),"转化完毕".decode("utf-8").encode(scode_type)
+            sys.stdout.write(tmp_time.decode("utf-8").encode(scode_type)+"\t")
+            sys.stdout.write("转化完毕".decode("utf-8").encode(scode_type)+"\n")
             
 def to_rec():
     '''
@@ -790,14 +805,14 @@ if __name__ == "__main__":
     else:
             print 'No dataset filename specified, system with exit\n'
             sys.exit('System will exit')
-    
+
     start_year,start_month,end_year,end_month = [2011,1,2015,8]
-    tb_name = Rec2Table.Rec2Table(inFile, 'hg_table.txt')
-    save_table_data(tb_name,"HG_INDICATOR/")
+    #tb_name = Rec2Table.Rec2Table(inFile, 'hg_table.txt')
+    #save_table_data(tb_name,"HG_INDICATOR/")
     generate_up_value("HG_CLS_DATA",start_year,start_month,end_year,end_month)
     trade_top( 'HG_CLS_DATA/HG7_data.txt',start_year,start_month,end_year,end_month)
-    save_to_xls(start_year,start_month,end_year,end_month)
-    generate_Rec(cal_year=str(end_year),cal_month=str(end_month))
+    #save_to_xls(start_year,start_month,end_year,end_month)
+    #generate_Rec(cal_year=str(end_year),cal_month=str(end_month))
     print "End!"
     
     
